@@ -31,7 +31,7 @@ namespace Minia {
                 Console.WriteLine("please install http://www.asio4all.org/");
                 Console.WriteLine("press any key to exit");
                 Console.ReadKey();
-                return;
+                Environment.Exit(0);
             }
 
             var asioOutMusic = new AsioOut(asioDrivers[0]);

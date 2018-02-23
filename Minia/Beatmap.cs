@@ -18,10 +18,9 @@ namespace Minia {
             public int column;
             public int start;
             public int end;
-            public bool isSingle {
+            public bool IsSingle {
                 get => end == 0;
             }
-            public bool isPaired = false;
 
             public HitObject(string s) {
                 var values = s.Split(new char[] { ',', ':' });

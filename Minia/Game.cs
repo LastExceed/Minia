@@ -4,20 +4,25 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
+using System.Diagnostics;
 
 namespace Minia {
     class Game : GameWindow {
         Beatmap beatmap = new Beatmap("b.osu");
-        //AsioOut asioOut;
-        WaveChannel32 hitsound = new WaveChannel32(new WaveFileReader(Properties.Resources.drum_hitfinish)) {//new Mp3FileReader("boss.mp3")
+        WaveChannel32 hitsound = new WaveChannel32(new WaveFileReader(Properties.Resources.drum_hitfinish), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
             PadWithZeroes = true
         };
-        WaveChannel32 music = new WaveChannel32(new Mp3FileReader("audio.mp3")) {//new Mp3FileReader("boss.mp3")
+        WaveChannel32 music = new WaveChannel32(new Mp3FileReader("audio.mp3"), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
             PadWithZeroes = true
         };
+        List<Beatmap.HitObject>[] notes = new List<Beatmap.HitObject>[4];
+        int[] startPos = new int[4];
+        Stopwatch sw = new Stopwatch();
 
-        public Game() : base(800, 600, GraphicsMode.Default, "Minia") {
+        public Game() : base(200, 600, GraphicsMode.Default, "Minia") {
             VSync = VSyncMode.On;
             CursorVisible = false;
             WindowState = WindowState.Fullscreen;
@@ -25,7 +30,9 @@ namespace Minia {
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
-            beatmap.hitObjects.Reverse();
+            for (int i = 0; i < 4; i++) notes[i] = beatmap.hitObjects.FindAll(x => x.column == i);
+
+
             var asioDrivers = AsioOut.GetDriverNames();
             if (asioDrivers.Length == 0) {
                 Console.WriteLine("please install http://www.asio4all.org/");
@@ -34,30 +41,49 @@ namespace Minia {
                 return;
             }
 
-            var asioOutMusic = new AsioOut(asioDrivers[0]);
-            asioOutMusic.Init(music);
-            asioOutMusic.Play();
+            var asioOut = new AsioOut(asioDrivers[0]);
+            asioOut.Init(new WaveMixerStream32(new WaveStream[2] { music, hitsound }, false));
+            asioOut.Play();
+            sw.Start();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
             base.OnRenderFrame(e);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            var xx = sw.ElapsedTicks;
 
             int time = (int)music.CurrentTime.TotalMilliseconds;
-            for (int i = beatmap.hitObjects.Count - 1; i >= 0; i--) {
-                var ho = beatmap.hitObjects[i];
-                if (ho.start < time - 100) {
-                    beatmap.hitObjects.RemoveAt(i);
-                    //miss
+            int upperLimit = time + 1000;
+            int lowerLimit = time - 100;
+            int columns = notes.Length;
+            for (int column = 0; column < columns; column++) {
+                var columnNotes = notes[column];
+                var columnNotesCount = columnNotes.Count;
+                for (int i = startPos[column]; i < columnNotesCount; i++) {
+                    var ho = columnNotes[i];
+                    if (ho.start > upperLimit) break;
+                    if (ho.start < lowerLimit) {
+                        startPos[column]++;
+                        //miss
+                    }
+                    else {
+                        float noteX = ho.column / 2f - 1f;
+                        float noteY = 0.002f * (ho.start - time) - 1f;
+                        Line(noteX, noteY, noteX + 0.5f, noteY);
+                        if (!ho.IsSingle) {
+                            float lnX = noteX + 0.25f;
+                            float lnY = 0.002f * (ho.end - time) - 1f;
+                            Line(lnX, noteY, lnX, lnY);
+                        }
+                    }
                 }
-                if (ho.start > time + 1000) break;
-                float noteX = (float)ho.column / 2f - 1f;
-                float noteY = 0.002f * (ho.start - time) - 1f;
-                Line(-noteX, noteY, -(noteX + 0.5f), noteY);//still need to figure why columns are flipped
             }
 
+            var yy = sw.ElapsedTicks;
             SwapBuffers();
-            //Console.WriteLine(e.Time*1000);
+            Console.Write(e.Time*1000);
+            Console.CursorLeft = 50;
+            Console.WriteLine((yy-xx)*1000 / (double)Stopwatch.Frequency);
             //Console.WriteLine(RenderFrequency);
         }
         protected override void OnResize(EventArgs e) {
@@ -70,40 +96,34 @@ namespace Minia {
             if (!e.IsRepeat) Task.Run(() => OnKeyDownAsync(e));
         }
         private void OnKeyDownAsync(KeyboardKeyEventArgs e) {
-            int col;
+            int column;
             switch (e.Key) {
                 case Key.D:
-                    col = 0;
+                    column = 0;
                     break;
                 case Key.F:
-                    col = 1;
+                    column = 1;
                     break;
                 case Key.J:
-                    col = 2;
+                    column = 2;
                     break;
                 case Key.K:
-                    col = 3;
+                    column = 3;
                     break;
                 default:
                     return;
             }
-            int time = (int)music.CurrentTime.TotalMilliseconds;
-            for (int i = beatmap.hitObjects.Count - 1; i >= 0; i--) {
-                var ho = beatmap.hitObjects[i];
-                if (ho.start > time + 100) break;
-                if (ho.column == col) {
-                    beatmap.hitObjects.RemoveAt(i);
-                    //hit
-                    break;
-                }
+            if (notes[column][startPos[column]].start < music.CurrentTime.TotalMilliseconds + 500) {
+                startPos[column]++;
+                //hit
             }
             hitsound.Position = 0;
         }
 
         private void Line(float x1, float y1, float x2, float y2) {
             GL.Begin(PrimitiveType.Lines);
-            GL.Vertex2(x1, y1);
-            GL.Vertex2(x2, y2);
+            GL.Vertex2(-x1 * 0.25f, y1);
+            GL.Vertex2(-x2 * 0.25f, y2);//still need to figure out why columns are flipped
             GL.End();
         }
     }

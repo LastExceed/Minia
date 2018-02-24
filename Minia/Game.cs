@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Diagnostics;
 using NAudio.Wave.SampleProviders;
+using System.IO;
+using System.Drawing;
 
 namespace Minia {
     class Game : GameWindow {
@@ -28,11 +30,13 @@ namespace Minia {
         short scrollTime = 1000;
         double time = 0f;
         double hitwindow = 100f;
+        long frames = 0;
+        double drawTime = 0;
 
         public Game() : base(200, 600, GraphicsMode.Default, "Minia") {
-            VSync = VSyncMode.On;
+            VSync = VSyncMode.Off;
             CursorVisible = false;
-            WindowState = WindowState.Fullscreen;
+            //WindowState = WindowState.Fullscreen;
             Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
@@ -51,17 +55,15 @@ namespace Minia {
             asioOut.Play();
             Task.Delay(1000).Wait();
             sw.Start();
-            music.Position = 0;
             time = 0;
+            music.Position = 0;
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
+            var xx = sw.ElapsedTicks;
             base.OnRenderFrame(e);
             time += e.Time*1000;
-            //GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.Clear(ClearBufferMask.ColorBufferBit);
-            var xx = sw.ElapsedTicks;
-            
 
             double upperLimit = time + scrollTime;
             double lowerLimit = time - hitwindow;
@@ -81,23 +83,28 @@ namespace Minia {
                     else {
                         float noteX = ho.column / 2f - 1f;
                         float noteY = (float)(YscaleFactor * (ho.start - time) - 1f);
-                        Line(noteX, noteY, noteX + 0.5f, noteY);
+                        Line(noteX, noteY, noteX + 0.5f, noteY, Color.White);
                         if (!ho.IsSingle) {
                             float lnX = noteX + 0.25f;
                             float lnY = (float)(YscaleFactor * (ho.end - time) - 1f);
-                            Line(lnX, noteY, lnX, lnY);
+                            Line(lnX, noteY, lnX, lnY, Color.Red);
                         }
                     }
                 }
             }
-
             var yy = sw.ElapsedTicks;
             SwapBuffers();
-            //Console.Write(e.Time*1000);
-            //Console.CursorLeft = 50;
-            //Console.WriteLine((yy-xx)*1000 / (double)Stopwatch.Frequency);
-            //Console.WriteLine(RenderFrequency);
-            //Console.WriteLine(sw.ElapsedMilliseconds - music.CurrentTime.TotalMilliseconds);
+            
+            frames++;
+            drawTime = (yy - xx) * 1000 / (double)Stopwatch.Frequency;
+        }
+        protected override void OnUpdateFrame(FrameEventArgs e) {
+            base.OnUpdateFrame(e);
+            Console.CursorTop = 0;
+            Console.CursorLeft = 0;
+            Console.WriteLine(time / frames);
+            Console.WriteLine(drawTime);
+            Console.WriteLine(music.CurrentTime.Ticks / TimeSpan.TicksPerMillisecond - time);
         }
         protected override void OnResize(EventArgs e) {
             base.OnResize(e);
@@ -135,12 +142,11 @@ namespace Minia {
             };
         }
 
-        private void Line(float x1, float y1, float x2, float y2) {
-            //GL.DrawArrays(PrimitiveType.Points, 0, 1);
-            //GL.PointSize(10f);
+        private void Line(float x1, float y1, float x2, float y2, Color color) {
             GL.Begin(PrimitiveType.Lines);
-            GL.Vertex2(-x1 * 0.15f, y1);
-            GL.Vertex2(-x2 * 0.15f, y2);//still need to figure out why columns are flipped
+            GL.Color3(color);
+            GL.Vertex2(-x1, y1);
+            GL.Vertex2(-x2, y2);//still need to figure out why columns are flipped
             GL.End();
         }
     }

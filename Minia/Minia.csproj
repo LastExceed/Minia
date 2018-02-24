@@ -72,7 +72,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\drum-hitfinish.wav" />
+    <None Include="Resources\hitsound.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\miss.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

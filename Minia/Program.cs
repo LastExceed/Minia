@@ -1,8 +1,4 @@
-﻿using NAudio;
-using NAudio.Wave;
-using System;
-using System.Media;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace Minia {
     class Program {
@@ -10,7 +6,7 @@ namespace Minia {
         static void Main(string[] args) {
             using (Game game = new Game()) {
                 game.Run(0f);
-            }
+            };
         }
     }
 }

@@ -63,9 +63,18 @@ namespace Minia.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
-        internal static System.IO.UnmanagedMemoryStream drum_hitfinish {
+        internal static System.IO.UnmanagedMemoryStream hitsound {
             get {
-                return ResourceManager.GetStream("drum_hitfinish", resourceCulture);
+                return ResourceManager.GetStream("hitsound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream miss {
+            get {
+                return ResourceManager.GetStream("miss", resourceCulture);
             }
         }
     }

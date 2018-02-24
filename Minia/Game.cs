@@ -62,30 +62,20 @@ namespace Minia {
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             var xx = sw.ElapsedTicks;
-            double upperLimit = time + scrollTime;
-            double lowerLimit = time - hitwindow;
-            float YscaleFactor = 2f / scrollTime;
-            int columns = notes.Length;
-            for (int column = 0; column < columns; column++) {
-                var columnNotes = notes[column];
-                var columnNotesCount = columnNotes.Count;
-                for (int i = startPos[column]; i < columnNotesCount; i++) {
-                    var ho = columnNotes[i];
-                    if (ho.start > upperLimit) break;
-                    if (ho.start < lowerLimit) {
+            for (int column = 0; column < notes.Length; column++) {
+                for (int i = startPos[column]; i < notes[column].Count; i++) {
+                    var ho = notes[column][i];
+                    if (ho.start > time + scrollTime) break;
+                    if (ho.start < time - hitwindow) {
                         startPos[column]++;
                         //miss
                         miss.Position = 0;
                     }
                     else {
                         float noteX = ho.column / 2f - 1f;
-                        float noteY = (float)(YscaleFactor * (ho.start - time) - 1f);
+                        float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
                         Line(noteX, noteY, noteX + 0.5f, noteY, Color.White);
-                        if (!ho.IsSingle) {
-                            float lnX = noteX + 0.25f;
-                            float lnY = (float)(YscaleFactor * (ho.end - time) - 1f);
-                            Line(lnX, noteY, lnX, lnY, Color.Red);
-                        }
+                        if (!ho.IsSingle) Line(noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
                     }
                 }
             }

@@ -6,10 +6,7 @@ using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using System.Diagnostics;
-using NAudio.Wave.SampleProviders;
-using System.IO;
 using System.Drawing;
 
 namespace Minia {
@@ -34,7 +31,7 @@ namespace Minia {
         double drawTime = 0;
 
         public Game() : base(200, 600, GraphicsMode.Default, "Minia") {
-            VSync = VSyncMode.Off;
+            VSync = VSyncMode.On;
             CursorVisible = false;
             //WindowState = WindowState.Fullscreen;
             Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
@@ -53,18 +50,18 @@ namespace Minia {
             var asioOut = new AsioOut(asioDrivers[0]);
             asioOut.Init(new WaveMixerStream32(new WaveStream[3] { music, hitsound, miss }, false));
             asioOut.Play();
-            Task.Delay(1000).Wait();
-            sw.Start();
-            time = 0;
+            Task.Delay(500).Wait();//give asio some time to start the playback, audio will be resynced afterwards
             music.Position = 0;
+            time = 0;
+            sw.Start();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
-            var xx = sw.ElapsedTicks;
             base.OnRenderFrame(e);
             time += e.Time*1000;
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
+            var xx = sw.ElapsedTicks;
             double upperLimit = time + scrollTime;
             double lowerLimit = time - hitwindow;
             float YscaleFactor = 2f / scrollTime;
@@ -93,8 +90,8 @@ namespace Minia {
                 }
             }
             var yy = sw.ElapsedTicks;
+
             SwapBuffers();
-            
             frames++;
             drawTime = (yy - xx) * 1000 / (double)Stopwatch.Frequency;
         }
@@ -102,9 +99,9 @@ namespace Minia {
             base.OnUpdateFrame(e);
             Console.CursorTop = 0;
             Console.CursorLeft = 0;
-            Console.WriteLine(time / frames);
-            Console.WriteLine(drawTime);
-            Console.WriteLine(music.CurrentTime.Ticks / TimeSpan.TicksPerMillisecond - time);
+            Console.WriteLine(time / frames);//frametime
+            Console.WriteLine(drawTime);//drawtime
+            Console.WriteLine(music.CurrentTime.Ticks / TimeSpan.TicksPerMillisecond - time);//audio desync
         }
         protected override void OnResize(EventArgs e) {
             base.OnResize(e);

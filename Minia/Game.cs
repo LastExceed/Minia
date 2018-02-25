@@ -89,8 +89,8 @@ namespace Minia {
                     else {
                         float noteX = column / 2f - 1f;
                         float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
-                        Line(noteX, noteY, noteX + 0.5f, noteY, Color.White);
-                        if (!ho.IsSingle) Line(noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
+                        Rectangle(noteX, noteY, noteX + 0.5f, noteY + 0.2f, Color.White);
+                        if (!ho.IsSingle) Rectangle(noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
                     }
                 }
             }
@@ -149,20 +149,20 @@ namespace Minia {
             }
         }
 
-        private void Line(float x1, float y1, float x2, float y2, Color color) {
-            GL.Begin(PrimitiveType.Lines);
-            GL.Color3(color);
-            GL.Vertex2(-x1, y1);
-            GL.Vertex2(-x2, y2);//still need to figure out why columns are flipped
-            GL.End();
-        }
         private void Rectangle(float x1, float y1, float x2, float y2, Color color) {
-            GL.Begin(PrimitiveType.Quads);
-            GL.Color3(color);
-            GL.Vertex2(-x1, y1);
-            GL.Vertex2(-x2, y1);
-            GL.Vertex2(-x2, y2);//still need to figure out why columns are flipped
-            GL.Vertex2(-x1, y2);
+            if (y1 == y2) {
+                GL.Begin(PrimitiveType.Lines);
+                GL.Color3(color);
+                GL.Vertex2(-x1, y1);
+            }
+            else {
+                GL.Begin(PrimitiveType.Quads);
+                GL.Color3(color);
+                GL.Vertex2(-x2, y1);
+                GL.Vertex2(-x1, y1);
+                GL.Vertex2(-x1, y2);
+            }
+            GL.Vertex2(-x2, y2); //still need to figure out why columns are flipped
             GL.End();
         }
     }

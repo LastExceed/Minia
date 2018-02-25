@@ -5,10 +5,8 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Drawing;
-using System.Threading;
 
 namespace Minia {
     class Game : GameWindow {
@@ -38,7 +36,7 @@ namespace Minia {
         double hitOffsetStack = 0;
         int notesPassed = 0;
 
-        public Game() : base(200, 300, GraphicsMode.Default, "Minia") {
+        public Game() : base(600, 800, GraphicsMode.Default, "Minia") {
             
         }
         protected override void OnLoad(EventArgs e) {
@@ -77,7 +75,7 @@ namespace Minia {
             var xx = sw.ElapsedTicks;
             for (int column = 0; column < notes.Length; column++) {
                 for (int i = startPos[column]; i < notes[column].Count; i++) {
-                    if (judgeTime[column] > time) Rectangle(column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, judgeColor[column]);
+                    if (judgeTime[column] > time) Note.DrawNote((int)Note.Type.Rectangle, column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, judgeColor[column]);
                     var ho = notes[column][i];
                     if (ho.start > time + scrollTime) break;
                     if (ho.start < time - hitwindow) {
@@ -89,8 +87,10 @@ namespace Minia {
                     else {
                         float noteX = column / 2f - 1f;
                         float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
-                        Rectangle(noteX, noteY, noteX + 0.5f, noteY + 0.2f, Color.White);
-                        if (!ho.IsSingle) Rectangle(noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
+                        Note.DrawNote((int)Note.Type.Rectangle, noteX, noteY, noteX + 0.5f, noteY + 0.25f, Color.White);
+                        //Rectangle(noteX, noteY, noteX + 0.5f, noteY + 0.2f, Color.White);
+                        if (!ho.IsSingle) Note.DrawNote((int)Note.Type.Rectangle, noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
+
                     }
                 }
             }
@@ -147,23 +147,6 @@ namespace Minia {
                 hitOffsetStack += nextNoteOffset;
                 notesPassed++;
             }
-        }
-
-        private void Rectangle(float x1, float y1, float x2, float y2, Color color) {
-            if (y1 == y2) {
-                GL.Begin(PrimitiveType.Lines);
-                GL.Color3(color);
-                GL.Vertex2(-x1, y1);
-            }
-            else {
-                GL.Begin(PrimitiveType.Quads);
-                GL.Color3(color);
-                GL.Vertex2(-x2, y1);
-                GL.Vertex2(-x1, y1);
-                GL.Vertex2(-x1, y2);
-            }
-            GL.Vertex2(-x2, y2); //still need to figure out why columns are flipped
-            GL.End();
         }
     }
 }

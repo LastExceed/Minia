@@ -5,7 +5,7 @@ namespace Minia {
         [STAThread]
         static void Main(string[] args) {
             using (Game game = new Game()) {
-                game.Run(10f);
+                game.Run(60f);
             };
         }
     }

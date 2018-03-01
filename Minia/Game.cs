@@ -36,7 +36,7 @@ namespace Minia {
         double hitOffsetStack = 0;
         int notesPassed = 0;
 
-        public Game() : base(600, 800, GraphicsMode.Default, "Minia") {
+        public Game() : base(300, 500, GraphicsMode.Default, "Minia") {
             
         }
         protected override void OnLoad(EventArgs e) {
@@ -75,7 +75,7 @@ namespace Minia {
             var xx = sw.ElapsedTicks;
             for (int column = 0; column < notes.Length; column++) {
                 for (int i = startPos[column]; i < notes[column].Count; i++) {
-                    if (judgeTime[column] > time) Note.DrawNote((int)Note.Type.Rectangle, column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, judgeColor[column]);
+                    if (judgeTime[column] > time) Draw.Rectangle(column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, judgeColor[column]);
                     var ho = notes[column][i];
                     if (ho.start > time + scrollTime) break;
                     if (ho.start < time - hitwindow) {
@@ -85,12 +85,11 @@ namespace Minia {
                         miss.Position = 0;
                     }
                     else {
-                        float noteX = column / 2f - 1f;
+                        float noteX = column / 2f - 0.75f;
                         float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
-                        Note.DrawNote((int)Note.Type.Rectangle, noteX, noteY, noteX + 0.5f, noteY + 0.25f, Color.White);
-                        //Rectangle(noteX, noteY, noteX + 0.5f, noteY + 0.2f, Color.White);
-                        if (!ho.IsSingle) Note.DrawNote((int)Note.Type.Rectangle, noteX + 0.25f, noteY, noteX + 0.25f, (float)(2f / scrollTime * (ho.end - time) - 1f), Color.Red);
-
+                        float columnWidth = 0.5f;
+                        Note.DrawNote(noteX, noteY, columnWidth, Color.White);
+                        if (!ho.IsSingle) Note.DrawSlider(noteX, noteY, (float)(2f / scrollTime * (ho.end - time) - 1f), columnWidth, Color.Red);
                     }
                 }
             }

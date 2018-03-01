@@ -53,6 +53,7 @@
     <Compile Include="Beatmap.cs" />
     <Compile Include="Draw.cs" />
     <Compile Include="Game.cs" />
+    <Compile Include="JudgeMeter.cs" />
     <Compile Include="Note.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

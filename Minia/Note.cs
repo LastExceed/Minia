@@ -24,9 +24,7 @@ namespace Minia {
             }
         }
         public static void DrawSlider(float x, float y1, float y2, float width, Color color) {
-            if (sliderWidth == 0f) {
-                Draw.Line(x, y1, x, y2, color);
-            }
+            if (sliderWidth == 0f) Draw.Line(x, y1, x, y2, color);
             else {
                 Draw.Rectangle(
                     x - width * sliderWidth / 2,

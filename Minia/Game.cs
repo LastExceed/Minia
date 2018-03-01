@@ -29,7 +29,7 @@ namespace Minia {
         Stopwatch sw = new Stopwatch();
         short scrollTime = 750;
         double time = 0f;//in ms
-        double hitwindow = 100f;
+        public static double hitwindow = 100f;
         double frameTime = 0;
         double drawTime = 0;
 
@@ -83,9 +83,10 @@ namespace Minia {
                         hitOffsetStack += 100;
                         notesPassed++;
                         miss.Position = 0;
+                        JudgeMeter.Judge(100f);
                     }
                     else {
-                        float noteX = column / 2f - 0.75f;
+                        float noteX = -1f * (column / 2f - 0.75f);
                         float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
                         float columnWidth = 0.5f;
                         Note.DrawNote(noteX, noteY, columnWidth, Color.White);
@@ -93,6 +94,7 @@ namespace Minia {
                     }
                 }
             }
+            JudgeMeter.Draw();
             var yy = sw.ElapsedTicks;
 
             SwapBuffers();
@@ -135,7 +137,8 @@ namespace Minia {
                         return;
                 }
                 hitsound.Position = 0;
-                var nextNoteOffset = Math.Abs(notes[column][startPos[column]].start - time);
+                var o = notes[column][startPos[column]].start - time;
+                var nextNoteOffset = Math.Abs(o);
                 if (nextNoteOffset > 100) return;
                 startPos[column]++;
                 judgeTime[column] = time + 33f;
@@ -145,6 +148,7 @@ namespace Minia {
                 else judgeColor[column] = Color.Red;
                 hitOffsetStack += nextNoteOffset;
                 notesPassed++;
+                JudgeMeter.Judge(o);
             }
         }
     }

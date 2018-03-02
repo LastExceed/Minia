@@ -1,28 +1,15 @@
-﻿using NAudio.Wave;
-using OpenTK;
+﻿using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 
 namespace Minia {
     class Game : GameWindow {
         Beatmap beatmap = new Beatmap("b.osu");
-        WaveChannel32 miss = new WaveChannel32(new WaveFileReader(Properties.Resources.miss), 1f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
-        WaveChannel32 hitsound = new WaveChannel32(new WaveFileReader(Properties.Resources.hitsound), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
-        WaveChannel32 music = new WaveChannel32(new Mp3FileReader("audio.mp3"), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
-
         ColumnData[] columns = new ColumnData[Config.columns];
-
         Stopwatch sw = new Stopwatch();
         double time = 0f;//in ms
         double frameTime = 0;
@@ -46,19 +33,8 @@ namespace Minia {
                 };
             }
 
-            var asioDrivers = AsioOut.GetDriverNames();
-            if (asioDrivers.Length == 0) {
-                Console.WriteLine("please install http://www.asio4all.org/");
-                Console.WriteLine("press any key to exit");
-                Console.ReadKey();
-                Environment.Exit(0);
-            }
-            var asioOut = new AsioOut(asioDrivers[0]);
-            //asioOut.ShowControlPanel();
-            asioOut.Init(new WaveMixerStream32(new WaveStream[3] { music, hitsound, miss }, false));
-            asioOut.Play();
-            while (music.CurrentTime.TotalSeconds < 0.1f) ;//wait for audio playback to become fluent
-            music.Position = 0;
+            Audio.Init();
+            Audio.StartAndSync();
             time = 0;
             sw.Start();
         }
@@ -77,11 +53,10 @@ namespace Minia {
                     if (ho.start > time + Config.scrollTime) break;
                     else if (ho.start < time - Config.hitWindow) {
                         columnData.startPos++;
-                        miss.Position = 0;
                         Judgement.Judge(Config.hitWindow, time, column);
                     }
                     else {
-                        float noteX = (column / 2f - 0.75f) * -1f;
+                        float noteX = -column / 2f + 0.75f;
                         float noteY = (float)(2f / Config.scrollTime * (ho.start - time) - 1f);
                         float columnWidth = 0.5f;
                         Noteskin.DrawNote(noteX, noteY, columnWidth, Color.White);
@@ -89,11 +64,11 @@ namespace Minia {
                     }
                 }
                 if (columnData.isHolding) {
-                    if (columnData.holdEndTime < time - Config.hitWindow * Config.hitWindowSliderScale) {
+                    if (columnData.holdEndTime < time - Config.hitWindow) {
                         //release missed
                     }
                     else {
-                        Noteskin.DrawSlider(-1f * (column / 2f - 0.75f), -1f, (float)(2f / Config.scrollTime * (columnData.holdEndTime - time) - 1f), 0.5f, Color.Red);
+                        Noteskin.DrawSlider(-column / 2f + 0.75f, -1f, (float)(2f / Config.scrollTime * (columnData.holdEndTime - time) - 1f), 0.5f, Color.Red);
                     }
                 }
             }
@@ -109,10 +84,11 @@ namespace Minia {
             base.OnUpdateFrame(e);
             Console.CursorTop = 0;
             Console.CursorLeft = 0;
-            Console.WriteLine(frameTime);
-            Console.WriteLine(drawTime);
-            Console.WriteLine(music.CurrentTime.TotalMilliseconds - time);//audio desync
-            Console.WriteLine(Score.Result);
+            Console.WriteLine("frameTime  : " + frameTime);
+            Console.WriteLine("drawTime   : " + drawTime);
+            Console.WriteLine("AudioDesync: " + Audio.GetDesync(time));
+            Console.WriteLine("Score      : " + Score.Result);
+            Console.WriteLine("Average    : " + Score.Average);
         }
         protected override void OnResize(EventArgs e) {
             base.OnResize(e);
@@ -136,13 +112,16 @@ namespace Minia {
                     case Key.K:
                         column = 3;
                         break;
+                    case Key.Escape:
+                        Environment.Exit(0);
+                        return;
                     default:
                         return;
                 }
-                hitsound.Position = 0;
+                Audio.Play("hit");
                 var columnData = columns[column];
-                var offset = columnData.notes[columnData.startPos].start - time;
-                if (offset > Config.hitWindow) return;
+                var offset = time - columnData.notes[columnData.startPos].start;
+                if (offset < -Config.hitWindow) return;
                 if (!columnData.notes[columnData.startPos].IsSingle) {
                     columnData.isHolding = true;
                     columnData.holdEndTime = columnData.notes[columnData.startPos].end;
@@ -153,7 +132,7 @@ namespace Minia {
         }
         protected override void OnKeyUp(KeyboardKeyEventArgs e) {
             base.OnKeyUp(e);
-            int column;
+            byte column;
             switch (e.Key) {
                 case Key.D:
                     column = 0;
@@ -173,7 +152,9 @@ namespace Minia {
             var columnData = columns[column];
             if (!columnData.isHolding) return;
             columnData.isHolding = false;
-
+            var offset = time - columnData.holdEndTime;
+            if (offset < -Config.hitWindow) offset = -Config.hitWindow;
+            Judgement.Judge(offset, time, column);
         }
     }
 }

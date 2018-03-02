@@ -10,13 +10,6 @@ namespace Minia {
             GL.Vertex2(x2, y2);
             GL.End();
         }
-        public static void Line(float x1, float y1, float x2, float y2, byte colorR, byte colorG, byte colorB) {
-            GL.Begin(PrimitiveType.Lines);
-            GL.Color3(colorR, colorG, colorB);
-            GL.Vertex2(x1, y1);
-            GL.Vertex2(x2, y2);
-            GL.End();
-        }
 
         public static void Triangle() {
             //TODO

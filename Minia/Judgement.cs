@@ -11,25 +11,31 @@ namespace Minia {
         public static void Judge(double offset, double time, byte column) {
             judgeTime[column] = time + Config.judgeVisibleTime;
             var offsetAbs = Math.Abs(offset);
-            if (offsetAbs < 100f/3f) judgeTime[column] = 0;
-            else if (offsetAbs < 200f/3f) judgeColor[column] = Color.Green;
+            if (offsetAbs < 100f / 3f) judgeTime[column] = 0;
+            else if (offsetAbs < 200f / 3f) judgeColor[column] = Color.Green;
             else if (offsetAbs < 100f) judgeColor[column] = Color.Yellow;
-            else judgeColor[column] = Color.Red;
+            else {
+                judgeColor[column] = Color.Red;
+                Audio.Play("miss");
+            }
 
             recent.Add((float)(offset / Config.hitWindow) * Config.judgeMeterScale * -1f);
             if (recent.Count > Config.judgeMeterMaxCount) recent.RemoveAt(0);
 
-            Score.Include(offsetAbs);
+            Score.Include(offset);
         }
         public static void DrawJudgeHighlighting(byte column, double time) {
-            if (judgeTime[column] > time) Shapes.Rectangle(column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, judgeColor[column]);
+            if (judgeTime[column] > time) Shapes.Rectangle(
+                -column / 2f + 1f,
+                1f,
+                -column / 2f + 0.5f,
+                -1f,
+                judgeColor[column]
+                );
         }
         public static void DrawJudgeMeter() {
-            for (int i = 0; i < recent.Count; i++) {
-                byte c = (byte)(256 / Config.judgeMeterMaxCount * i);
-                Shapes.Line(recent[i], -1f, recent[i], -0.93f, c, c, c);
-            }
-            Shapes.Line(0f, -1f, 0f, -0.9f, Color.Red);
+            foreach (float stamp in recent) Shapes.Line(stamp, 1f, stamp, 0.93f, Color.White);
+            Shapes.Line(0f, 1f, 0f, 0.9f, Color.Red);
         }
     }
 }

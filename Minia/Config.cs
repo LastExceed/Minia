@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Minia {
+﻿namespace Minia {
     static class Config {
         public const double hitWindow = 100f;
-        public const float hitWindowSliderScale = 1.5f;
         public const double scrollTime = 750f;
         public const double judgeVisibleTime = 33f;
         public const float judgeMeterScale = 0.5f;

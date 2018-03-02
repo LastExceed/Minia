@@ -1,5 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
-using System.Drawing;
+﻿using System.Drawing;
 
 namespace Minia {
     public enum NoteType : int {

@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Audio.cs" />
     <Compile Include="Beatmap.cs" />
     <Compile Include="ColumnData.cs" />
     <Compile Include="Config.cs" />

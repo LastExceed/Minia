@@ -51,7 +51,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Beatmap.cs" />
-    <Compile Include="Draw.cs" />
+    <Compile Include="ColumnData.cs" />
+    <Compile Include="Shapes.cs" />
     <Compile Include="Game.cs" />
     <Compile Include="JudgeMeter.cs" />
     <Compile Include="Note.cs" />

@@ -24,9 +24,9 @@ namespace Minia {
             }
         }
         public static void DrawSlider(float x, float y1, float y2, float width, Color color) {
-            if (sliderWidth == 0f) Draw.Line(x, y1, x, y2, color);
+            if (sliderWidth == 0f) Shapes.Line(x, y1, x, y2, color);
             else {
-                Draw.Rectangle(
+                Shapes.Rectangle(
                     x - width * sliderWidth / 2,
                     y1, x + width * sliderWidth / 2,
                     y2,
@@ -36,7 +36,7 @@ namespace Minia {
         }
         private static void Bar(float x, float y, float width, float height, Color color) {
             if (height == 0) {
-                Draw.Line(
+                Shapes.Line(
                     x - width / 2,
                     y,
                     x + width / 2,
@@ -45,7 +45,7 @@ namespace Minia {
                 );
             }
             else {
-                Draw.Rectangle(
+                Shapes.Rectangle(
                    x - width / 2,
                    y - height / 2,
                    x + width / 2,

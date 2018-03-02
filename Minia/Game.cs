@@ -21,21 +21,12 @@ namespace Minia {
             PadWithZeroes = true
         };
 
-        ColumnData[] columns = new ColumnData[4];
-        //List<Beatmap.HitObject>[] notes = new List<Beatmap.HitObject>[4];
-        //int[] startPos = new int[4];
-        //double[] judgeTime = new double[4];
-        //Color[] judgeColor = new Color[4];
+        ColumnData[] columns = new ColumnData[Config.columns];
 
         Stopwatch sw = new Stopwatch();
-        short scrollTime = 750;
         double time = 0f;//in ms
-        public static double hitwindow = 100f;
         double frameTime = 0;
         double drawTime = 0;
-
-        double hitOffsetStack = 0;
-        int notesPassed = 0;
 
         public Game() : base(300, 500, GraphicsMode.Default, "Minia") {
             
@@ -49,10 +40,10 @@ namespace Minia {
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);
 
-
-            for (int i = 0; i < 4; i++) {
-                columns[i] = new ColumnData();
-                columns[i].notes = beatmap.hitObjects.FindAll(x => x.column == i);
+            for (int i = 0; i < Config.columns; i++) {
+                columns[i] = new ColumnData {
+                    notes = beatmap.hitObjects.FindAll(x => x.column == i)
+                };
             }
 
             var asioDrivers = AsioOut.GetDriverNames();
@@ -78,37 +69,35 @@ namespace Minia {
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             var xx = sw.ElapsedTicks;
-            for (int column = 0; column < columns.Length; column++) {
+            for (byte column = 0; column < Config.columns; column++) {
                 var columnData = columns[column];
                 for (int i = columnData.startPos; i < columnData.notes.Count; i++) {
-                    if (columnData.judgeTime > time) Shapes.Rectangle(column / 2f - 1f, 1f, column / 2f - 0.5f, -1f, columnData.judgeColor);
+                    Judgement.DrawJudgeHighlighting(column, time);
                     var ho = columnData.notes[i];
-                    if (ho.start > time + scrollTime) break;
-                    if (ho.start < time - hitwindow) {
+                    if (ho.start > time + Config.scrollTime) break;
+                    else if (ho.start < time - Config.hitWindow) {
                         columnData.startPos++;
-                        hitOffsetStack += 100;
-                        notesPassed++;
                         miss.Position = 0;
-                        JudgeMeter.Judge(100f);
+                        Judgement.Judge(Config.hitWindow, time, column);
                     }
                     else {
-                        float noteX = -1f * (column / 2f - 0.75f);
-                        float noteY = (float)(2f / scrollTime * (ho.start - time) - 1f);
+                        float noteX = (column / 2f - 0.75f) * -1f;
+                        float noteY = (float)(2f / Config.scrollTime * (ho.start - time) - 1f);
                         float columnWidth = 0.5f;
-                        Note.DrawNote(noteX, noteY, columnWidth, Color.White);
-                        if (!ho.IsSingle) Note.DrawSlider(noteX, noteY, (float)(2f / scrollTime * (ho.end - time) - 1f), columnWidth, Color.Red);
+                        Noteskin.DrawNote(noteX, noteY, columnWidth, Color.White);
+                        if (!ho.IsSingle) Noteskin.DrawSlider(noteX, noteY, (float)(2f / Config.scrollTime * (ho.end - time) - 1f), columnWidth, Color.Red);
                     }
                 }
                 if (columnData.isHolding) {
-                    if (columnData.holdEndTime < time - hitwindow * 1.5f) {
+                    if (columnData.holdEndTime < time - Config.hitWindow * Config.hitWindowSliderScale) {
                         //release missed
                     }
                     else {
-                        Note.DrawSlider(-1f * (column / 2f - 0.75f), -1f, (float)(2f / scrollTime * (columnData.holdEndTime - time) - 1f), 0.25f, Color.Red);
+                        Noteskin.DrawSlider(-1f * (column / 2f - 0.75f), -1f, (float)(2f / Config.scrollTime * (columnData.holdEndTime - time) - 1f), 0.5f, Color.Red);
                     }
                 }
             }
-            JudgeMeter.Draw();
+            Judgement.DrawJudgeMeter();
             var yy = sw.ElapsedTicks;
 
             SwapBuffers();
@@ -123,7 +112,7 @@ namespace Minia {
             Console.WriteLine(frameTime);
             Console.WriteLine(drawTime);
             Console.WriteLine(music.CurrentTime.TotalMilliseconds - time);//audio desync
-            Console.WriteLine(hitOffsetStack / notesPassed);
+            Console.WriteLine(Score.Result);
         }
         protected override void OnResize(EventArgs e) {
             base.OnResize(e);
@@ -133,7 +122,7 @@ namespace Minia {
         protected override void OnKeyDown(KeyboardKeyEventArgs e) {
             base.OnKeyDown(e);
             if (!e.IsRepeat) {
-                int column;
+                byte column;
                 switch (e.Key) {
                     case Key.D:
                         column = 0;
@@ -152,22 +141,14 @@ namespace Minia {
                 }
                 hitsound.Position = 0;
                 var columnData = columns[column];
-                var o = columnData.notes[columnData.startPos].start - time;
-                var nextNoteOffset = Math.Abs(o);
-                if (nextNoteOffset > 100) return;
+                var offset = columnData.notes[columnData.startPos].start - time;
+                if (offset > Config.hitWindow) return;
                 if (!columnData.notes[columnData.startPos].IsSingle) {
                     columnData.isHolding = true;
                     columnData.holdEndTime = columnData.notes[columnData.startPos].end;
                 }
                 columnData.startPos++;
-                columnData.judgeTime = time + 33f;
-                if (nextNoteOffset < 33.3333333f) columnData.judgeTime = 0;
-                else if (nextNoteOffset < 66.66666666f) columnData.judgeColor = Color.Green;
-                else if (nextNoteOffset <= 100f) columnData.judgeColor = Color.Yellow;
-                else columnData.judgeColor = Color.Red;
-                hitOffsetStack += nextNoteOffset;
-                notesPassed++;
-                JudgeMeter.Judge(o);
+                Judgement.Judge(offset, time, column);
             }
         }
         protected override void OnKeyUp(KeyboardKeyEventArgs e) {
@@ -189,7 +170,9 @@ namespace Minia {
                 default:
                     return;
             }
-            if (!columns[column].isHolding) return;
+            var columnData = columns[column];
+            if (!columnData.isHolding) return;
+            columnData.isHolding = false;
 
         }
     }

@@ -52,10 +52,12 @@
   <ItemGroup>
     <Compile Include="Beatmap.cs" />
     <Compile Include="ColumnData.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Score.cs" />
     <Compile Include="Shapes.cs" />
     <Compile Include="Game.cs" />
-    <Compile Include="JudgeMeter.cs" />
-    <Compile Include="Note.cs" />
+    <Compile Include="Judgement.cs" />
+    <Compile Include="Noteskin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

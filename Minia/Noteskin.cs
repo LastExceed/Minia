@@ -6,15 +6,11 @@ namespace Minia {
         Bar,
         Arrow,
     }
-    static class Note {
-        const NoteType noteType = NoteType.Bar;
-        const float barHeight = 0.0f;           //placeholder for settings
-        const float sliderWidth = 0.0f;
-
+    static class Noteskin {
         public static void DrawNote(float x, float y, float width, Color color) {
-            switch (noteType) {
+            switch (Config.NoteskinType) {
                 case NoteType.Bar:
-                    Bar(x, y, width, barHeight, color);
+                    Bar(x, y, width, Config.NoteskinBarHeight, color);
                     break;
                 case NoteType.Arrow:
                     Arrow(x, y, width, color);
@@ -24,18 +20,18 @@ namespace Minia {
             }
         }
         public static void DrawSlider(float x, float y1, float y2, float width, Color color) {
-            if (sliderWidth == 0f) Shapes.Line(x, y1, x, y2, color);
+            if (Config.NoteSkinSliderWidth == float.Epsilon) Shapes.Line(x, y1, x, y2, color);
             else {
                 Shapes.Rectangle(
-                    x - width * sliderWidth / 2,
-                    y1, x + width * sliderWidth / 2,
+                    x - width * Config.NoteSkinSliderWidth / 2,
+                    y1, x + width * Config.NoteSkinSliderWidth / 2,
                     y2,
                     color
                 );
             }
         }
         private static void Bar(float x, float y, float width, float height, Color color) {
-            if (height == 0) {
+            if (height == float.Epsilon) {
                 Shapes.Line(
                     x - width / 2,
                     y,

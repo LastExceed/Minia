@@ -3,18 +3,20 @@ using System;
 
 namespace Minia {
     static class Audio {
-        static WaveChannel32 miss = new WaveChannel32(new WaveFileReader(Properties.Resources.miss), 1f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
-        static WaveChannel32 hit = new WaveChannel32(new WaveFileReader(Properties.Resources.hitsound), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
-        static WaveChannel32 music = new WaveChannel32(new Mp3FileReader("audio.mp3"), 0.15f, 0f) {//new Mp3FileReader("boss.mp3")
-            PadWithZeroes = true
-        };
+        static AudioFileReader music, miss, hit;
         static AsioOut asioOut;
 
-        public static void Init() {
+        public static void Init(string musicFile) {
+            hit = new AudioFileReader("hitsound.wav") {
+                Volume = 0.2f
+            };
+            miss = new AudioFileReader("miss.wav") {
+                Volume = 0.2f
+            };
+            music = new AudioFileReader(musicFile) {
+                Volume = 0.2f
+            };
+
             var asioDrivers = AsioOut.GetDriverNames();
             if (asioDrivers.Length == 0) {
                 Console.WriteLine("please install http://www.asio4all.org/");
@@ -29,7 +31,7 @@ namespace Minia {
 
         public static void StartAndSync() {
             asioOut.Play();
-            while (music.CurrentTime.TotalSeconds < 0.1f) ;//wait for audio playback to become fluent
+            while (music.CurrentTime.Ticks == 0) ;//wait for audio playback to become fluent
             music.Position = 0;
         }
 

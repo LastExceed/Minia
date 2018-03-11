@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 
@@ -23,10 +24,11 @@ namespace Minia {
             }
 
             public HitObject(string s) {
-                var values = s.Split(new char[] { ',', ':' });
-                column = (int.Parse(values[0]) - 64) / 128;
+                var values = s.Split(new char[] { ',', ':', '|' });
+                column = (int)Math.Floor(int.Parse(values[0]) / 512f * Config.columns);
                 start = int.Parse(values[2]);
-                end = int.Parse(values[5]);
+                if (int.Parse(values[3]) == 128) end = int.Parse(values[5]);
+                else end = 0;
             }
         }
 
@@ -35,6 +37,8 @@ namespace Minia {
 
         public Beatmap(string path) {
             string s = File.ReadAllText(path);
+            Config.columns = byte.Parse(s.Substring(s.IndexOf("CircleSize:") + 11, 1));
+
             int startindex = s.IndexOf("[TimingPoints]") + 14;
             int endindex = s.IndexOf("[HitObjects]");
 

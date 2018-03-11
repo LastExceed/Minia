@@ -6,24 +6,24 @@ namespace Minia {
         Arrow,
     }
     static class Noteskin {
-        public static void DrawNote(float x, float y, float width, Color color) {
+        public static void DrawNote(float x, float y, Color color) {
             switch (Config.NoteskinType) {
                 case NoteType.Bar:
-                    Bar(x, y, width, Config.NoteskinBarHeight, color);
+                    Bar(x, y, Config.ColumnWidth, Config.NoteskinBarHeight, color);
                     break;
                 case NoteType.Arrow:
-                    Arrow(x, y, width, color);
+                    Arrow(x, y, 1, color);
                     break;
                 default:
                     break;
             }
         }
-        public static void DrawSlider(float x, float y1, float y2, float width, Color color) {
+        public static void DrawSlider(float x, float y1, float y2, Color color) {
             if (Config.NoteSkinSliderWidth == float.Epsilon) Shapes.Line(x, y1, x, y2, color);
             else {
                 Shapes.Rectangle(
-                    x - width * Config.NoteSkinSliderWidth / 2,
-                    y1, x + width * Config.NoteSkinSliderWidth / 2,
+                    x - Config.ColumnWidth * Config.NoteSkinSliderWidth / 2,
+                    y1, x + Config.ColumnWidth * Config.NoteSkinSliderWidth / 2,
                     y2,
                     color
                 );

@@ -26,9 +26,9 @@ namespace Minia {
         }
         public static void DrawJudgeHighlighting(byte column, double time) {
             if (judgeTime[column] > time) Shapes.Rectangle(
-                -column / 2f + 1f,
+                Config.GetColumnStart(column),
                 1f,
-                -column / 2f + 0.5f,
+                Config.GetColumnStart(column) + Config.ColumnWidth,
                 -1f,
                 judgeColor[column]
                 );

@@ -5,9 +5,17 @@
         public const double judgeVisibleTime = 33f;
         public const float judgeMeterScale = 0.5f;
         public const byte judgeMeterMaxCount = 32;
-        public const byte columns = 4;
         public const float NoteskinBarHeight = float.Epsilon;           //placeholder for settings
         public const float NoteSkinSliderWidth = float.Epsilon;
         public const NoteType NoteskinType = NoteType.Bar;
+        public const string songsDirectory = @"D:\osu!\Songs";
+
+        public static byte columns;
+        public static float GetColumnStart(int column) {
+            return 1f - ColumnWidth * column;
+        }
+        public static float ColumnWidth {
+            get => 2f / columns;
+        }
     }
 }

@@ -24,5 +24,12 @@ namespace Minia {
             GL.Vertex2(x2, y2);
             GL.End();
         }
+
+        public static void Character(char character) {
+            switch (character) {
+                default:
+                    break;
+            }
+        }
     }
 }

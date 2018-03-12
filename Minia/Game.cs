@@ -25,7 +25,7 @@ namespace Minia {
             base.OnLoad(e);
             VSync = VSyncMode.Off;
             CursorVisible = false;
-            //WindowState = WindowState.Fullscreen;
+            WindowState = WindowState.Fullscreen;
             Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, Vector3.UnitZ, Vector3.UnitY);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref modelview);

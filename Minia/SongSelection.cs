@@ -8,7 +8,8 @@ namespace Minia {
         static string[] songDirectories;
         static AsioOut asioOut;
         static AudioFileReader audioFileReader;
-        static string diff;
+        static int diffIndex = 0;
+        static string diffFile;
         static string audioFile;
 
         public static void Show() {
@@ -47,9 +48,28 @@ namespace Minia {
             }
             if (diffs.Length == 0) return;
 
+            for (int i = 0; i < Console.BufferHeight; i++) {
+                Console.CursorTop = i;
+                Console.CursorLeft = 55;
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = ConsoleColor.Black;
+                Console.Write("█ ");
+                if (i < diffs.Length) {
+                    var startIndex = diffs[i].IndexOf("[") + 1;
+                    var endIndex = diffs[i].IndexOf("]");
+                    var diffName = diffs[i].Substring(startIndex, endIndex - startIndex);
+                    if (diffName.Length > 23) diffName = diffName.Substring(0, 23);
+                    if (i == diffIndex) {
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.BackgroundColor = ConsoleColor.White;
+                    }
+                    Console.Write(diffName);
+                }
+            }
+
             string line;
-            diff = diffs[0];
-            using (var reader = File.OpenText(diff)) {
+            diffFile = diffs[diffIndex];
+            using (var reader = File.OpenText(diffFile)) {
                 do {
                     line = reader.ReadLine();
                 } while (!line.StartsWith("AudioFile"));
@@ -67,12 +87,24 @@ namespace Minia {
         private static void OnKey(ConsoleKeyInfo keyInfo) {
             switch (keyInfo.Key) {
                 case ConsoleKey.RightArrow:
+                    diffIndex = 0;
                     songIndex++;
                     Refresh();
                     break;
                 case ConsoleKey.LeftArrow:
                     if (songIndex != 0) {
+                        diffIndex = 0;
                         songIndex--;
+                        Refresh();
+                    }
+                    break;
+                case ConsoleKey.DownArrow:
+                    diffIndex++;
+                    Refresh();
+                    break;
+                case ConsoleKey.UpArrow:
+                    if (diffIndex != 0) {
+                        diffIndex--;
                         Refresh();
                     }
                     break;
@@ -88,7 +120,7 @@ namespace Minia {
 
         public static void Run() {
             Console.Clear();
-            using (Game game = new Game(diff, audioFile)) {
+            using (Game game = new Game(diffFile, audioFile)) {
                 game.Run(60f);
             };
         }

@@ -3,20 +3,12 @@ using System;
 
 namespace Minia {
     static class Audio {
-        static AudioFileReader music, miss, hit;
         static AsioOut asioOut;
+        static MixingWaveProvider32 mixer;
+        public static AudioFileReader music, miss, hit;
+        public static double time;//in ms
 
-        public static void Init(string musicFile) {
-            hit = new AudioFileReader("hitsound.wav") {
-                Volume = 0.2f
-            };
-            miss = new AudioFileReader("miss.wav") {
-                Volume = 0.2f
-            };
-            music = new AudioFileReader(musicFile) {
-                Volume = 0.2f
-            };
-
+        static Audio() {
             var asioDrivers = AsioOut.GetDriverNames();
             if (asioDrivers.Length == 0) {
                 Console.WriteLine("please install http://www.asio4all.org/");
@@ -25,27 +17,37 @@ namespace Minia {
                 Environment.Exit(0);
             }
             asioOut = new AsioOut(asioDrivers[0]);
-            //asioOut.ShowControlPanel();
-            asioOut.Init(new WaveMixerStream32(new WaveStream[3] { music, hit, miss }, false));
+            mixer = new MixingWaveProvider32();
+            asioOut.Init(mixer);
+            hit = new AudioFileReader("hitsound.wav") {
+                Volume = 0.2f
+            };
+            miss = new AudioFileReader("miss.wav") {
+                Volume = 0.2f
+            };
+            mixer.AddInputStream(hit);
+            mixer.AddInputStream(miss);
+            asioOut.Play();
         }
 
-        public static void StartAndSync() {
+        public static void SetMusic(string musicFile) {
+            if (music != null) {
+                asioOut.Stop();
+                mixer.RemoveInputStream(music);
+                music.Dispose();
+            }
+            music = new AudioFileReader(musicFile) {
+                Volume = 0.2f
+            };
+            mixer.AddInputStream(music);
             asioOut.Play();
+        }
+
+        public static void ResetAndSync() {
+            //asioOut.ShowControlPanel();
             while (music.CurrentTime.Ticks == 0) ;//wait for audio playback to become fluent
             music.Position = 0;
-        }
-
-        public static void Play(string sound) {
-            switch (sound) {
-                case "miss":
-                    miss.Position = 0;
-                    break;
-                case "hit":
-                    hit.Position = 0;
-                    break;
-                default:
-                    throw new InvalidOperationException("unknown sound");
-            }
+            time = 0;
         }
 
         public static double GetDesync(double time) => music.CurrentTime.TotalMilliseconds - time;

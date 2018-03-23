@@ -1,128 +1,113 @@
-﻿using NAudio.Wave;
+﻿using OpenTK.Input;
 using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Minia {
     static class SongSelection {
-        static int songIndex = 1621;
-        static string[] songDirectories;
-        static AsioOut asioOut;
-        static AudioFileReader audioFileReader;
-        static int diffIndex = 0;
-        static string diffFile;
-        static string audioFile;
+        static string[] mapsetDirectories;
+        static string[] diffFiles;
+        static List<Beatmap> diffs;
+        static int selectedMapset;
+        static int selectedDiff;
+        static string currentAudioFile;
 
-        public static void Show() {
-            Console.BufferHeight = 25;
-            songDirectories = Directory.GetDirectories(Config.songsDirectory);
-            Refresh();
-            while (true) OnKey(Console.ReadKey());
+        static SongSelection() {
+            mapsetDirectories = Directory.GetDirectories(Config.songsDirectory);
+            SelectMapset(2460);
         }
 
-        private static void Refresh() {
-            Console.Clear();
-            for (int i = -12; i < 13; i++) {
-                if (songIndex + i < 0) {
-                    Console.WriteLine();
-                    continue;
-                }
+        public static void Draw() {
+            for (int i = -10; i <= 10; i++) {
+                if (selectedMapset + i < 0) continue;
                 if (i == 0) {
-                    Console.ForegroundColor = ConsoleColor.Black;
-                    Console.BackgroundColor = ConsoleColor.White;
+                    Shapes.Rectangle(-1f, 0.05f, 0f, -0.05f, Color.Gray);
+                }
+                var folderName = mapsetDirectories[selectedMapset+ i].Substring(Config.songsDirectory.Length);
+                if (folderName.Contains(" ") && int.TryParse(folderName.Substring(0, folderName.IndexOf(" ")), out int id)) folderName = folderName.Substring(folderName.IndexOf(" ") + 1);
+                Shapes.Text(folderName, -1f, i * -0.1f, 0.05f, Color.Yellow);
+            }
+            for (int i = 0; i < diffFiles.Length; i++) {
+                if (i == selectedDiff) {
+                    Shapes.Rectangle(0f, 1f - i * 0.1f + 0.05f, 1f, 1f - (i + 1) * 0.1f + 0.05f, Color.Gray);
+                }
+                string diffName;
+                Color color;
+                if (diffs?[i] == null || !diffs[i].properties.ContainsKey("version")) {
+                    diffName = diffFiles[i];
+                    color = Color.Yellow;
                 }
                 else {
-                    Console.ForegroundColor = ConsoleColor.White;
-                    Console.BackgroundColor = ConsoleColor.Black;
+                    diffName = diffs[i].properties["version"];
+                    var r = diffs[i].mode;
+                    color = diffs[i].mode == 3 ? Color.Green : Color.Red;
                 }
-                var folderName = songDirectories[songIndex + i].Substring(Config.songsDirectory.Length + 1);
-                if (folderName.Contains(" ") && int.TryParse(folderName.Substring(0, folderName.IndexOf(" ")), out int id)) folderName = folderName.Substring(folderName.IndexOf(" ")+ 1);
-                Console.Write(folderName);
-                if (i != 12) Console.WriteLine();
-            }
-            var diffs = Directory.GetFiles(songDirectories[songIndex], "*.osu");
-            if (asioOut != null) {
-                asioOut.Stop();
-                asioOut.Dispose();
-                asioOut = null;
-                audioFileReader.Dispose();
-            }
-            if (diffs.Length == 0) return;
-
-            for (int i = 0; i < Console.BufferHeight; i++) {
-                Console.CursorTop = i;
-                Console.CursorLeft = 55;
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.BackgroundColor = ConsoleColor.Black;
-                Console.Write("█ ");
-                if (i < diffs.Length) {
-                    var startIndex = diffs[i].IndexOf("[") + 1;
-                    var endIndex = diffs[i].IndexOf("]");
-                    var diffName = diffs[i].Substring(startIndex, endIndex - startIndex);
-                    if (diffName.Length > 23) diffName = diffName.Substring(0, 23);
-                    if (i == diffIndex) {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.White;
-                    }
-                    Console.Write(diffName);
-                }
-            }
-
-            string line;
-            diffFile = diffs[diffIndex];
-            using (var reader = File.OpenText(diffFile)) {
-                do {
-                    line = reader.ReadLine();
-                } while (!line.StartsWith("AudioFile"));
-            }
-            audioFile = songDirectories[songIndex] + @"\" + line.Substring(15);
-            audioFileReader = new AudioFileReader(audioFile) {
-                Volume = 0.2f
-            };
-            asioOut = new AsioOut();
-            asioOut.Init(audioFileReader);
-            asioOut.Play();
-            audioFileReader.Skip(10);
-        }
-
-        private static void OnKey(ConsoleKeyInfo keyInfo) {
-            switch (keyInfo.Key) {
-                case ConsoleKey.RightArrow:
-                    diffIndex = 0;
-                    songIndex++;
-                    Refresh();
-                    break;
-                case ConsoleKey.LeftArrow:
-                    if (songIndex != 0) {
-                        diffIndex = 0;
-                        songIndex--;
-                        Refresh();
-                    }
-                    break;
-                case ConsoleKey.DownArrow:
-                    diffIndex++;
-                    Refresh();
-                    break;
-                case ConsoleKey.UpArrow:
-                    if (diffIndex != 0) {
-                        diffIndex--;
-                        Refresh();
-                    }
-                    break;
-                case ConsoleKey.Enter:
-                    Run();
-                    break;
-                case ConsoleKey.Backspace:
-                    break;
-                default:
-                    break;
+                Shapes.Text(diffName, 0f, 1f - 0.1f * i, 0.05f, color);
             }
         }
 
-        public static void Run() {
-            Console.Clear();
-            using (Game game = new Game(diffFile, audioFile)) {
-                game.Run(60f);
-            };
+        private static void SelectMapset(int index) {
+            selectedDiff = -1;
+            selectedMapset = index;
+            diffFiles = Directory.GetFiles(mapsetDirectories[selectedMapset], "*.osu");
+            diffs = new List<Beatmap>();
+            if (diffFiles.Length == 0) {
+                //no diffs
+                return;
+            }
+            for (int i = 0; i < diffFiles.Length; i++) {
+                diffs.Add(new Beatmap(diffFiles[i]));
+            }
+            if (diffs.Count == 0) {
+                //no diffs
+                return;
+            }
+            SelectDiff(0);
+        }
+        private static void SelectDiff(int index) {
+            selectedDiff = index;
+            var audioFile = mapsetDirectories[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
+            if (audioFile != currentAudioFile) {//audioFile changed
+                try {
+                    Audio.SetMusic(audioFile);
+                }
+                catch { }
+                currentAudioFile = audioFile;
+            }
+        }
+
+        public static void OnKey(Key key, bool down) {
+            if (down) {
+                switch (key) {
+                    case Key.Left:
+                        SelectMapset(selectedMapset - 1);
+                        break;
+                    case Key.Right:
+                        SelectMapset(selectedMapset + 1);
+                        break;
+                    case Key.Up:
+                        SelectDiff(selectedDiff - 1);
+                        break;
+                    case Key.Down:
+                        SelectDiff(selectedDiff + 1);
+                        break;
+                    case Key.Enter:
+                        Stage.Load(diffs[selectedDiff]);
+                        break;
+                    case Key.Escape:
+                        Environment.Exit(0);
+                            break;
+                    default:
+                        break;
+                }
+            }
+            else {
+                //stop repeat
+            }
         }
     }
 }

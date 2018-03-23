@@ -5,8 +5,12 @@ using System.Drawing;
 namespace Minia {
     static class Judgement {
         static List<float> recent = new List<float>();
-        static double[] judgeTime = new double[Config.columns];
-        static Color[] judgeColor = new Color[Config.columns];
+        static double[] judgeTime;
+        static Color[] judgeColor;
+        public static void Load(byte columns) {
+            judgeTime = new double[columns];
+            judgeColor = new Color[columns];
+        }
 
         public static void Judge(double offset, double time, byte column) {
             judgeTime[column] = time + Config.judgeVisibleTime;
@@ -16,19 +20,19 @@ namespace Minia {
             else if (offsetAbs < 100f) judgeColor[column] = Color.Yellow;
             else {
                 judgeColor[column] = Color.Red;
-                Audio.Play("miss");
+                Audio.miss.Position = 0;
             }
 
-            recent.Add((float)(offset / Config.hitWindow) * Config.judgeMeterScale * -1f);
+            recent.Add((float)(offset / Config.hitWindow) * Config.judgeMeterScale);
             if (recent.Count > Config.judgeMeterMaxCount) recent.RemoveAt(0);
 
             Score.Include(offset);
         }
         public static void DrawJudgeHighlighting(byte column, double time) {
             if (judgeTime[column] > time) Shapes.Rectangle(
-                Config.GetColumnStart(column),
+                Stage.GetColumnStart(column),
                 1f,
-                Config.GetColumnStart(column) + Config.ColumnWidth,
+                Stage.GetColumnStart(column) + Stage.ColumnWidth,
                 -1f,
                 judgeColor[column]
                 );

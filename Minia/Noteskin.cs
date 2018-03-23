@@ -9,7 +9,7 @@ namespace Minia {
         public static void DrawNote(float x, float y, Color color) {
             switch (Config.NoteskinType) {
                 case NoteType.Bar:
-                    Bar(x, y, Config.ColumnWidth, Config.NoteskinBarHeight, color);
+                    Bar(x, y, Stage.ColumnWidth, Config.NoteskinBarHeight, color);
                     break;
                 case NoteType.Arrow:
                     Arrow(x, y, 1, color);
@@ -22,8 +22,8 @@ namespace Minia {
             if (Config.NoteSkinSliderWidth == float.Epsilon) Shapes.Line(x, y1, x, y2, color);
             else {
                 Shapes.Rectangle(
-                    x - Config.ColumnWidth * Config.NoteSkinSliderWidth / 2,
-                    y1, x + Config.ColumnWidth * Config.NoteSkinSliderWidth / 2,
+                    x - Stage.ColumnWidth * Config.NoteSkinSliderWidth / 2,
+                    y1, x + Stage.ColumnWidth * Config.NoteSkinSliderWidth / 2,
                     y2,
                     color
                 );

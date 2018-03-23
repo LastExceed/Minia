@@ -5,7 +5,10 @@ namespace Minia {
         [STAThread]
         static void Main(string[] args) {
             //SongSelection.Run();
-            SongSelection.Show();
+            //SongSelection.Show();
+            using (Game game = new Game()) {
+                game.Run(60f);
+            };
         }
     }
 }

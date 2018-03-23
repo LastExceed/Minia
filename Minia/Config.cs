@@ -9,14 +9,11 @@
         public const float NoteskinBarHeight = float.Epsilon;           //placeholder for settings
         public const float NoteSkinSliderWidth = float.Epsilon;
         public const NoteType NoteskinType = NoteType.Bar;
-        public const string songsDirectory = @"D:\osu!\Songs";
-
-        public static byte columns;
-        public static float GetColumnStart(int column) {
-            return stageWidthScale - ColumnWidth * column;
-        }
-        public static float ColumnWidth {
-            get => 2f / columns * stageWidthScale;
-        }
+        public const string songsDirectory = @"D:\osu!\Songs\";
+        public static Screen screen = Screen.SongSelection;
+    }
+    public enum Screen {
+        Stage,
+        SongSelection,
     }
 }

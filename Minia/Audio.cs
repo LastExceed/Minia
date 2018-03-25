@@ -1,12 +1,16 @@
 ﻿using NAudio.Wave;
 using System;
+using System.Diagnostics;
 
 namespace Minia {
     static class Audio {
         static AsioOut asioOut;
         static MixingWaveProvider32 mixer;
         public static AudioFileReader music, miss, hit;
-        public static double time;//in ms
+        public static Stopwatch sw = new Stopwatch();
+        public static double Desync {
+            get => music.CurrentTime.TotalMilliseconds - sw.Elapsed.TotalMilliseconds;
+        }
 
         static Audio() {
             var asioDrivers = AsioOut.GetDriverNames();
@@ -45,11 +49,9 @@ namespace Minia {
 
         public static void ResetAndSync() {
             //asioOut.ShowControlPanel();
-            while (music.CurrentTime.Ticks == 0) ;//wait for audio playback to become fluent
-            music.Position = 0;
-            time = 0;
+            while (music.CurrentTime.TotalMilliseconds <= 1000) ;//wait for audio playback to become 
+            sw.Restart();
+            music.CurrentTime = new TimeSpan(0);
         }
-
-        public static double GetDesync(double time) => music.CurrentTime.TotalMilliseconds - time;
     }
 }

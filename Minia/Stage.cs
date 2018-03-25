@@ -7,7 +7,7 @@ namespace Minia {
     static class Stage {
         static ColumnData[] columns;
         static Beatmap beatmap;
-        static List<Key> keyLayout = new List<Key>();
+        static List<Key> keyLayout;
 
         public static float GetColumnStart(int column) {
             return ColumnWidth * column - Config.stageWidthScale;
@@ -27,7 +27,7 @@ namespace Minia {
             }
 
             Judgement.Load(beatmap.columns);
-
+            keyLayout = new List<Key>();
             switch (beatmap.columns) {
                 case 4:
                     keyLayout.Add(Key.D);
@@ -52,6 +52,7 @@ namespace Minia {
         }
 
         public static void Draw(double time) {
+            Shapes.Line(GetColumnStart(0), -0.999f, -GetColumnStart(0), -0.999f, Color.White);
             for (byte column = 0; column < beatmap.columns; column++) {
                 var columnData = columns[column];
                 for (int i = columnData.startPos; i < columnData.notes.Count; i++) {
@@ -85,13 +86,14 @@ namespace Minia {
             Judgement.DrawJudgeMeter();
         }
 
-        public static void OnKey(Key key, bool down, double time) {
-            if (down && key == Key.Escape) {
+        public static void OnKey(KeyboardKeyEventArgs e, bool down, double time) {
+            if (e.IsRepeat) return;
+            if (down && e.Key == Key.Escape) {
                 Config.screen = Screen.SongSelection;
                 return;
             }
-            if (!keyLayout.Contains(key)) return;
-            byte column = (byte)keyLayout.IndexOf(key);
+            if (!keyLayout.Contains(e.Key)) return;
+            byte column = (byte)keyLayout.IndexOf(e.Key);
             var columnData = columns[column];
             double offset;
             if (down) {

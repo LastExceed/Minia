@@ -1,4 +1,5 @@
-﻿using OpenTK.Input;
+﻿using OpenTK;
+using OpenTK.Input;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,24 +11,26 @@ using System.Threading.Tasks;
 namespace Minia {
     static class SongSelection {
         static string[] mapsetDirectories;
+        static string[] searchResults;
         static string[] diffFiles;
         static List<Beatmap> diffs;
         static int selectedMapset;
         static int selectedDiff;
         static string currentAudioFile;
+        static string searchQuery = "";
 
         static SongSelection() {
-            mapsetDirectories = Directory.GetDirectories(Config.songsDirectory);
-            SelectMapset(2460);
+            mapsetDirectories = searchResults = Directory.GetDirectories(Config.songsDirectory);
+            SelectMapset(1);
         }
 
         public static void Draw() {
             for (int i = -10; i <= 10; i++) {
-                if (selectedMapset + i < 0) continue;
+                if (selectedMapset + i < 0 || selectedMapset + i >= searchResults.Length) continue;
                 if (i == 0) {
                     Shapes.Rectangle(-1f, 0.05f, 0f, -0.05f, Color.Gray);
                 }
-                var folderName = mapsetDirectories[selectedMapset+ i].Substring(Config.songsDirectory.Length);
+                var folderName = searchResults[selectedMapset + i].Substring(Config.songsDirectory.Length);
                 if (folderName.Contains(" ") && int.TryParse(folderName.Substring(0, folderName.IndexOf(" ")), out int id)) folderName = folderName.Substring(folderName.IndexOf(" ") + 1);
                 Shapes.Text(folderName, -1f, i * -0.1f, 0.05f, Color.Yellow);
             }
@@ -51,14 +54,14 @@ namespace Minia {
         }
 
         private static void SelectMapset(int index) {
-            selectedDiff = -1;
             selectedMapset = index;
-            diffFiles = Directory.GetFiles(mapsetDirectories[selectedMapset], "*.osu");
             diffs = new List<Beatmap>();
-            if (diffFiles.Length == 0) {
-                //no diffs
+            if (index == -1) {
+                diffFiles = new string[0];
+                SelectDiff(-1);
                 return;
             }
+            diffFiles = Directory.GetFiles(searchResults[selectedMapset], "*.osu");
             for (int i = 0; i < diffFiles.Length; i++) {
                 diffs.Add(new Beatmap(diffFiles[i]));
             }
@@ -70,44 +73,71 @@ namespace Minia {
         }
         private static void SelectDiff(int index) {
             selectedDiff = index;
-            var audioFile = mapsetDirectories[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
+            var audioFile = selectedDiff == -1 ? null : searchResults[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
             if (audioFile != currentAudioFile) {//audioFile changed
                 try {
                     Audio.SetMusic(audioFile);
                 }
-                catch { }
+                catch {
+                    Console.Title = "error";
+                }
                 currentAudioFile = audioFile;
             }
         }
 
-        public static void OnKey(Key key, bool down) {
-            if (down) {
-                switch (key) {
-                    case Key.Left:
-                        SelectMapset(selectedMapset - 1);
-                        break;
-                    case Key.Right:
-                        SelectMapset(selectedMapset + 1);
-                        break;
-                    case Key.Up:
-                        SelectDiff(selectedDiff - 1);
-                        break;
-                    case Key.Down:
-                        SelectDiff(selectedDiff + 1);
-                        break;
-                    case Key.Enter:
-                        Stage.Load(diffs[selectedDiff]);
-                        break;
-                    case Key.Escape:
-                        Environment.Exit(0);
-                            break;
-                    default:
-                        break;
-                }
+        private static void OnSearchQueryChanged(char c) {
+            string[] source;
+            var previous = selectedMapset == -1 ? null : searchResults[selectedMapset];
+            if (c == '\b') {
+                searchQuery = searchQuery.Remove(searchQuery.Length - 1);
+                source = mapsetDirectories;
             }
             else {
-                //stop repeat
+                searchQuery += c;
+                source = searchResults;
             }
+            searchResults = source.Where(path => path.ToLower().Contains(searchQuery)).ToArray();
+            Console.Clear();
+            Console.WriteLine(searchQuery);
+            for (int i = 0; i < searchResults.Length; i++) {
+                if (searchResults[i] == previous) {
+                    selectedMapset = i;
+                    return;
+                }
+            }
+            SelectMapset(searchResults.Length == 0 ? -1 : 0);
+        }
+
+        public static void OnKeyDown(KeyboardKeyEventArgs e) {
+            switch (e.Key) {
+                case Key.Left:
+                    SelectMapset(selectedMapset - 1);
+                    break;
+                case Key.Right:
+                    SelectMapset(selectedMapset + 1);
+                    break;
+                case Key.Up:
+                    SelectDiff(selectedDiff - 1);
+                    break;
+                case Key.Down:
+                    SelectDiff(selectedDiff + 1);
+                    break;
+                case Key.Enter:
+                    Stage.Load(diffs[selectedDiff]);
+                    break;
+                case Key.BackSpace when searchQuery.Length != 0:
+                    OnSearchQueryChanged('\b');
+                    break;
+                case Key.Escape:
+                    Environment.Exit(0);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        public static void OnKeyPress(KeyPressEventArgs e) {
+            OnSearchQueryChanged(e.KeyChar);
         }
     }
 }

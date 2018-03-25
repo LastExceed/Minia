@@ -18,25 +18,33 @@ namespace Minia {
         static int selectedDiff;
         static string currentAudioFile;
         static string searchQuery = "";
+        static Random rnd = new Random();
 
         static SongSelection() {
             mapsetDirectories = searchResults = Directory.GetDirectories(Config.songsDirectory);
-            SelectMapset(1);
+            SelectMapset(rnd.Next(searchResults.Length - 1));
         }
 
         public static void Draw() {
-            for (int i = -10; i <= 10; i++) {
+            Shapes.Rectangle(-1f, 0.05f, 0.33f, -0.1f, Color.Gray);
+            for (int i = -5; i <= 5; i++) {
                 if (selectedMapset + i < 0 || selectedMapset + i >= searchResults.Length) continue;
-                if (i == 0) {
-                    Shapes.Rectangle(-1f, 0.05f, 0f, -0.05f, Color.Gray);
-                }
                 var folderName = searchResults[selectedMapset + i].Substring(Config.songsDirectory.Length);
                 if (folderName.Contains(" ") && int.TryParse(folderName.Substring(0, folderName.IndexOf(" ")), out int id)) folderName = folderName.Substring(folderName.IndexOf(" ") + 1);
-                Shapes.Text(folderName, -1f, i * -0.1f, 0.05f, Color.Yellow);
+                string artist = null;
+                if (folderName.Contains(" - ")) {
+                    var index = folderName.IndexOf(" - ");
+                    artist = folderName.Remove(index);
+                    folderName = folderName.Substring(index + 3);
+                }
+                Shapes.Text(folderName, -1f, i * -0.2f, 0.1f, Color.Yellow);
+                if (artist != null) {
+                    Shapes.Text(artist, -1f, i * -0.2f - 0.075f, 0.05f, Color.LightGray);
+                }
             }
             for (int i = 0; i < diffFiles.Length; i++) {
                 if (i == selectedDiff) {
-                    Shapes.Rectangle(0f, 1f - i * 0.1f + 0.05f, 1f, 1f - (i + 1) * 0.1f + 0.05f, Color.Gray);
+                    Shapes.Rectangle(0.33f, 1f - i * 0.066f + 0.033f, 1f, 1f - (i + 1) * 0.066f + 0.033f, Color.Gray);
                 }
                 string diffName;
                 Color color;
@@ -49,7 +57,7 @@ namespace Minia {
                     var r = diffs[i].mode;
                     color = diffs[i].mode == 3 ? Color.Green : Color.Red;
                 }
-                Shapes.Text(diffName, 0f, 1f - 0.1f * i, 0.05f, color);
+                Shapes.Text(diffName, 0.33f, 1f - 0.066f * i, 0.05f, color);
             }
         }
 
@@ -109,24 +117,36 @@ namespace Minia {
         }
 
         public static void OnKeyDown(KeyboardKeyEventArgs e) {
+            Audio.hit.CurrentTime = new TimeSpan(0);
             switch (e.Key) {
                 case Key.Left:
-                    SelectMapset(selectedMapset - 1);
+                    if (selectedMapset > 0) {
+                        SelectMapset(selectedMapset - 1);
+                    }
                     break;
                 case Key.Right:
-                    SelectMapset(selectedMapset + 1);
+                    if (selectedMapset < searchResults.Length - 1) {
+                        SelectMapset(selectedMapset + 1);
+                    }
                     break;
                 case Key.Up:
-                    SelectDiff(selectedDiff - 1);
+                    if (selectedDiff > 0) {
+                        SelectDiff(selectedDiff - 1);
+                    }
                     break;
                 case Key.Down:
-                    SelectDiff(selectedDiff + 1);
+                    if (selectedDiff < diffs.Count - 1) {
+                        SelectDiff(selectedDiff + 1);
+                    }
                     break;
                 case Key.Enter:
                     Stage.Load(diffs[selectedDiff]);
                     break;
                 case Key.BackSpace when searchQuery.Length != 0:
                     OnSearchQueryChanged('\b');
+                    break;
+                case Key.F2:
+                    SelectMapset(rnd.Next(searchResults.Length - 1));
                     break;
                 case Key.Escape:
                     Environment.Exit(0);

@@ -29,13 +29,13 @@ namespace Minia {
         public static void Text(string text, float x, float y, float scale, Color color) {
             for (int i = 0; i < text.Length; i++) {
                 var character = text[i];
-                Character(character, x + scale*0.5f*i, y - scale / 2f, scale, color);
+                Character(character, x + scale*0.33f*i, y - scale / 2f, scale, color);
             }
         }
 
         private static void Character(char character, float x, float y, float scale, Color color) {
-            var width = scale * 0.33f;
-            var height = scale * 0.8f;
+            var width = scale * 0.25f;
+            var height = scale * 1f;
             switch (character) {
                 case 'A':
                 case 'a':
@@ -140,7 +140,7 @@ namespace Minia {
                 case 'Q':
                 case 'q':
                     Character('O', x, y, scale, color);
-                    Line(x + width / 2f, y + height / 2f, +width, y, color);
+                    Line(x + width / 2f, y + height / 2f, x + width, y, color);
                     break;
                 case 'R':
                 case 'r':

@@ -3,9 +3,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 
 namespace Minia {
     class Game : GameWindow {
@@ -13,7 +11,7 @@ namespace Minia {
         double frameTime = 0;
         double drawTime = 0;
 
-        public Game() : base(300, 500, GraphicsMode.Default, "Minia") {
+        public Game() : base(1280, 720, GraphicsMode.Default, "Minia") {
             
         }
         protected override void OnLoad(EventArgs e) {
@@ -44,7 +42,7 @@ namespace Minia {
 
             SwapBuffers();
             var zz = sw.ElapsedTicks;
-            frameTime = e.Time;
+            frameTime = e.Time * 1000;
             drawTime = (yy - xx) * 1000 / (double)Stopwatch.Frequency;
         }
         protected override void OnUpdateFrame(FrameEventArgs e) {

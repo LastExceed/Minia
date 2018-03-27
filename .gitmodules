@@ -1,0 +1,3 @@
+[submodule "NAudio"]
+	path = NAudio
+	url = http://github.com/naudio/NAudio.git

@@ -1,4 +1,5 @@
 ﻿using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 using System;
 using System.Diagnostics;
 
@@ -9,8 +10,15 @@ namespace Minia {
         public static AudioFileReader music, miss, hit;
         public static Stopwatch sw = new Stopwatch();
         public static double Desync {
-            get => music.CurrentTime.TotalMilliseconds - sw.Elapsed.TotalMilliseconds;
+            get {
+                steps++;
+                total += music.CurrentTime.TotalMilliseconds - sw.Elapsed.TotalMilliseconds;
+                return total / steps;
+                //return music.CurrentTime.TotalMilliseconds - sw.Elapsed.TotalMilliseconds;
+            }
         }
+        static double total = 0;
+        static long steps = 0;
 
         static Audio() {
             var asioDrivers = AsioOut.GetDriverNames();
@@ -43,15 +51,24 @@ namespace Minia {
             music = new AudioFileReader(musicFile) {
                 Volume = 0.2f
             };
-            mixer.AddInputStream(music);
+            try {
+                mixer.AddInputStream(music);
+            }
+            catch (ArgumentException) {
+                Console.WriteLine("!");
+                return;
+            }
             asioOut.Play();
+            music.CurrentTime = new TimeSpan(0, 0, 30);
         }
 
         public static void ResetAndSync() {
             //asioOut.ShowControlPanel();
-            while (music.CurrentTime.TotalMilliseconds <= 1000) ;//wait for audio playback to become 
-            sw.Restart();
+            while (music.CurrentTime.TotalSeconds <= 2d) ;//wait for audio playback to become 
             music.CurrentTime = new TimeSpan(0);
+            sw.Restart();
+            total = 0;
+            steps = 0;
         }
     }
 }

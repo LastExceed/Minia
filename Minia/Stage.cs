@@ -97,7 +97,7 @@ namespace Minia {
             var columnData = columns[column];
             double offset;
             if (down) {
-                Audio.hit.Position = 0;
+                Audio.hit.CurrentTime = new TimeSpan(0);
                 offset = time - columnData.notes[columnData.startPos].start;
                 if (offset < -Config.hitWindow) return;
                 if (!columnData.notes[columnData.startPos].IsSingle) {

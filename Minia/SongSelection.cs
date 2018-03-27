@@ -83,12 +83,7 @@ namespace Minia {
             selectedDiff = index;
             var audioFile = selectedDiff == -1 ? null : searchResults[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
             if (audioFile != currentAudioFile) {//audioFile changed
-                try {
-                    Audio.SetMusic(audioFile);
-                }
-                catch {
-                    Console.Title = "error";
-                }
+                Audio.SetMusic(audioFile);
                 currentAudioFile = audioFile;
             }
         }

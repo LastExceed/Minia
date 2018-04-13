@@ -18,7 +18,7 @@ namespace Minia {
             base.OnLoad(e);
             VSync = VSyncMode.Off;
             CursorVisible = false;
-            WindowState = WindowState.Fullscreen;
+            //WindowState = WindowState.Fullscreen;
             Matrix4 modelview = Matrix4.LookAt(Vector3.Zero, -Vector3.UnitZ, Vector3.UnitY);
             //GL.MatrixMode(MatrixMode.Color);
             GL.LoadMatrix(ref modelview);
@@ -32,10 +32,10 @@ namespace Minia {
             var xx = sw.ElapsedTicks;
             switch (Config.screen) {
                 case Screen.Stage:
-                    Stage.Draw(Audio.sw.Elapsed.TotalMilliseconds);
+                    Stage.Draw(Audio.MusicTime);
                     break;
                 case Screen.SongSelection:
-                    SongSelection.Draw();
+                        SongSelection.Draw();
                     break;
             }
             var yy = sw.ElapsedTicks;
@@ -57,6 +57,7 @@ namespace Minia {
             Console.BackgroundColor = ConsoleColor.Black;
             Console.WriteLine("drawTime   : " + drawTime);
             Console.WriteLine("AudioDesync: " + Audio.Desync);
+            Console.WriteLine("TotalDesync: " + Audio.DesyncTotal);
             Console.WriteLine("Score      : " + Score.Result);
             Console.WriteLine("Average    : " + Score.Average);
         }
@@ -68,7 +69,7 @@ namespace Minia {
         protected override void OnKeyDown(KeyboardKeyEventArgs e) {
             base.OnKeyDown(e);
             if (Config.screen == Screen.Stage) {
-                Stage.OnKey(e, true, Audio.sw.Elapsed.TotalMilliseconds);
+                Stage.OnKey(e, true, Audio.MusicTime);
             }
             else {
                 SongSelection.OnKeyDown(e);
@@ -77,7 +78,7 @@ namespace Minia {
         protected override void OnKeyUp(KeyboardKeyEventArgs e) {
             base.OnKeyUp(e);
             if (Config.screen == Screen.Stage) {
-                Stage.OnKey(e, false, Audio.sw.Elapsed.TotalMilliseconds);
+                Stage.OnKey(e, false, Audio.MusicTime);
             }
         }
         protected override void OnKeyPress(KeyPressEventArgs e) {

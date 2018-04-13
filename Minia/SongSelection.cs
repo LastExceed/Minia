@@ -44,7 +44,7 @@ namespace Minia {
             }
             for (int i = 0; i < diffFiles.Length; i++) {
                 if (i == selectedDiff) {
-                    Shapes.Rectangle(0.33f, 1f - i * 0.066f + 0.033f, 1f, 1f - (i + 1) * 0.066f + 0.033f, Color.Gray);
+                    Shapes.Rectangle(0.33f, 1f - i * 0.066f, 1f, 1f - (i + 1) * 0.066f, Color.Gray);
                 }
                 string diffName;
                 Color color;
@@ -57,7 +57,7 @@ namespace Minia {
                     var r = diffs[i].mode;
                     color = diffs[i].mode == 3 ? Color.Green : Color.Red;
                 }
-                Shapes.Text(diffName, 0.33f, 1f - 0.066f * i, 0.05f, color);
+                Shapes.Text(diffName, 0.33f, 1f - 0.066f * i - 0.033f, 0.05f, color);
             }
         }
 
@@ -83,8 +83,9 @@ namespace Minia {
             selectedDiff = index;
             var audioFile = selectedDiff == -1 ? null : searchResults[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
             if (audioFile != currentAudioFile) {//audioFile changed
-                Audio.SetMusic(audioFile);
                 currentAudioFile = audioFile;
+                if (audioFile == null) return;
+                Audio.SetMusic(audioFile);
             }
         }
 

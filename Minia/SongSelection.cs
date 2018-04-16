@@ -145,6 +145,7 @@ namespace Minia {
                     SelectMapset(rnd.Next(searchResults.Length - 1));
                     break;
                 case Key.Escape:
+                    Audio.Abort();
                     Environment.Exit(0);
                     break;
                 default:

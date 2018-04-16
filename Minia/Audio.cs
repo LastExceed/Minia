@@ -96,5 +96,13 @@ namespace Minia {
             total = 0;
             steps = 0;
         }
+
+        internal static void Abort() {
+            asioOut.Stop();
+            asioOut.Dispose();
+            music.Dispose();
+            hit.Dispose();
+            miss.Dispose();
+        }
     }
 }

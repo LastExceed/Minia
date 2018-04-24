@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Minia.Judge;
 
 namespace Minia {
     static class Stage {
@@ -35,6 +36,21 @@ namespace Minia {
                     keyLayout.Add(Key.J);
                     keyLayout.Add(Key.K);
                     break;
+                case 5:
+                    keyLayout.Add(Key.D);
+                    keyLayout.Add(Key.F);
+                    keyLayout.Add(Key.Space);
+                    keyLayout.Add(Key.J);
+                    keyLayout.Add(Key.K);
+                    break;
+                case 6:
+                    keyLayout.Add(Key.S);
+                    keyLayout.Add(Key.D);
+                    keyLayout.Add(Key.F);
+                    keyLayout.Add(Key.J);
+                    keyLayout.Add(Key.K);
+                    keyLayout.Add(Key.L);
+                    break;
                 case 7:
                     keyLayout.Add(Key.S);
                     keyLayout.Add(Key.D);
@@ -53,10 +69,10 @@ namespace Minia {
 
         public static void Draw(double time) {
             Shapes.Line(GetColumnStart(0), -0.999f, -GetColumnStart(0), -0.999f, Color.White);
+            Judgement.Draw(beatmap.columns, time);
             for (byte column = 0; column < beatmap.columns; column++) {
                 var columnData = columns[column];
                 for (int i = columnData.startPos; i < columnData.notes.Count; i++) {
-                    Judgement.DrawJudgeHighlighting(column, time);
                     var ho = columnData.notes[i];
                     if (ho.start > time + Config.scrollTime) break;
                     else if (ho.start < time - Config.hitWindow) {
@@ -76,14 +92,14 @@ namespace Minia {
                     }
                     else {
                         Noteskin.DrawSlider(
-                                            GetColumnStart(column) + ColumnWidth / 2f,
-                                            -1f,
-                                            (float)(2f / Config.scrollTime * (columnData.holdEndTime - time) - 1f),
-                                            Color.Red);
+                            GetColumnStart(column) + ColumnWidth / 2f,
+                            -1f,
+                            (float)(2f / Config.scrollTime * (columnData.holdEndTime - time) - 1f),
+                            Color.Red
+                        );
                     }
                 }
             }
-            Judgement.DrawJudgeMeter();
         }
 
         public static void OnKey(KeyboardKeyEventArgs e, bool down, double time) {
@@ -98,6 +114,7 @@ namespace Minia {
             double offset;
             if (down) {
                 Audio.hit.CurrentTime = new TimeSpan(0);
+                if (columnData.startPos >= columnData.notes.Count) return;
                 offset = time - columnData.notes[columnData.startPos].start;
                 if (offset < -Config.hitWindow) return;
                 if (!columnData.notes[columnData.startPos].IsSingle) {

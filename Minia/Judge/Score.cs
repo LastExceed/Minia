@@ -2,15 +2,22 @@
 
 namespace Minia {
     static class Score {
-        static double totalHitOffsetAbs = 0;
-        static double totalHitOffset = 0;
+        static double totalHitOffsetAbs;
+        static double totalHitOffset;
         public static int Hits {get; private set; }
         public static int Misses {get; private set; }
         public static double Result {
             get => (totalHitOffsetAbs + Misses * Config.hitWindow) / (Hits + Misses);
         }
         public static double Average {
-            get => totalHitOffset / Hits;
+            get => Hits == 0 ? 0 : totalHitOffset / Hits;
+        }
+
+        public static void Load() {
+            totalHitOffsetAbs = 0;
+            totalHitOffset = 0;
+            Hits = 0;
+            Misses = 0;
         }
 
         public static void Include(double offset) {

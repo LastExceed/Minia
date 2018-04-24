@@ -48,13 +48,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Audio.cs" />
-    <Compile Include="Beatmap.cs" />
+    <Compile Include="NoteSource\Beatmap.cs" />
     <Compile Include="ColumnData.cs" />
     <Compile Include="Config.cs" />
-    <Compile Include="Score.cs" />
+    <Compile Include="Judge\JudgeHighlighting.cs" />
+    <Compile Include="Judge\JudgeMeter.cs" />
+    <Compile Include="Judge\Score.cs" />
     <Compile Include="Shapes.cs" />
     <Compile Include="Game.cs" />
-    <Compile Include="Judgement.cs" />
+    <Compile Include="Judge\Judgement.cs" />
     <Compile Include="Noteskin.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -63,6 +65,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="NoteSource\Simfile.cs" />
     <Compile Include="SongSelection.cs" />
     <Compile Include="Stage.cs" />
   </ItemGroup>

@@ -59,6 +59,7 @@ namespace Minia {
                 }
                 Shapes.Text(diffName, 0.33f, 1f - 0.066f * i - 0.033f, 0.05f, color);
             }
+            Shapes.Text(searchQuery, 0f, -0.9f, 0.1f, Color.Cyan);
         }
 
         private static void SelectMapset(int index) {
@@ -97,7 +98,7 @@ namespace Minia {
                 source = mapsetDirectories;
             }
             else {
-                searchQuery += c;
+                searchQuery += c.ToString().ToLower();
                 source = searchResults;
             }
             searchResults = source.Where(path => path.ToLower().Contains(searchQuery)).ToArray();
@@ -136,7 +137,12 @@ namespace Minia {
                     }
                     break;
                 case Key.Enter:
-                    Stage.Load(diffs[selectedDiff]);
+                    if (Audio.musicCompatible) {
+                        Stage.Load(diffs[selectedDiff]);
+                    }
+                    else {
+                        Audio.miss.CurrentTime = new TimeSpan(0);
+                    }
                     break;
                 case Key.BackSpace when searchQuery.Length != 0:
                     OnSearchQueryChanged('\b');
@@ -145,8 +151,7 @@ namespace Minia {
                     SelectMapset(rnd.Next(searchResults.Length - 1));
                     break;
                 case Key.Escape:
-                    Audio.Abort();
-                    Environment.Exit(0);
+                    Program.game.Close();
                     break;
                 default:
                     break;

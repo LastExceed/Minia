@@ -28,6 +28,7 @@ namespace Minia {
                 //return music.CurrentTime.TotalMilliseconds - sw.Elapsed.TotalMilliseconds;
             }
         }
+        public static bool musicCompatible;
         static double total = 0;
         static long steps = 0;
 
@@ -65,28 +66,18 @@ namespace Minia {
             if (music != null) {
                 mixer.RemoveInputStream(music);
                 music.Dispose();
-                music.Dispose();
             }
             var audioFileReader = new AudioFileReader(musicFile);
             if (audioFileReader.WaveFormat.SampleRate != mixer.WaveFormat.SampleRate) {
-                Console.WriteLine("!");
                 audioFileReader.Dispose();
+                musicCompatible = false;
                 return;
             }
+            musicCompatible = true;
             music = new WaveChannel32(audioFileReader) {
                 Volume = 0.2f
             };
-            Console.WriteLine(music.WaveFormat.BitsPerSample);
-            Console.WriteLine(music.WaveFormat.Channels);
-            Console.WriteLine(music.WaveFormat.SampleRate);
-            Console.WriteLine();
-            try {
-                mixer.AddInputStream(music);
-            }
-            catch (ArgumentException ex) {
-                Console.WriteLine(ex.Message);
-                return;
-            }
+            mixer.AddInputStream(music);
             music.CurrentTime = new TimeSpan(0, 0, 30);
         }
 

@@ -1,12 +1,12 @@
 ﻿using System;
 
 namespace Minia {
-    class Program {
+    static class Program {
+        public static Game game = new Game();
         [STAThread]
         static void Main(string[] args) {
-            using (Game game = new Game()) {
-                game.Run(60f);
-            };
+            game.Run(60f);
+            game.Dispose();
         }
     }
 }

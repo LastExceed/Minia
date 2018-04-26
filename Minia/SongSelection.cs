@@ -151,7 +151,13 @@ namespace Minia {
                     SelectMapset(rnd.Next(searchResults.Length - 1));
                     break;
                 case Key.Escape:
-                    Program.game.Close();
+                    if(searchQuery != "") {
+                        searchQuery = " ";
+                        OnSearchQueryChanged('\b');
+                    }
+                    else {
+                        Program.game.Close();
+                    }
                     break;
                 default:
                     break;

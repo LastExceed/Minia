@@ -66,7 +66,9 @@ namespace Minia {
         }
 
         public static void Draw(double time) {
-            Shapes.Line(GetColumnStart(0), -0.999f, -GetColumnStart(0), -0.999f, Color.White);
+            if (columns.Length % 2 != 0) {
+                Shapes.Rectangle(-ColumnWidth / 2f, 1f, ColumnWidth / 2f, -1f, Color.Purple);
+            }
             for (byte column = 0; column < beatmap.columns; column++) {
                 var columnData = columns[column];
                 for (int i = columnData.startPos; i < columnData.notes.Count; i++) {
@@ -99,6 +101,9 @@ namespace Minia {
                     }
                 }
             }
+            Shapes.Rectangle(GetColumnStart(0), 1f, GetColumnStart(columns.Length - 1) + ColumnWidth, 1f - Config.topCover, Color.Black);
+            Shapes.Rectangle(GetColumnStart(0), -1f, GetColumnStart(columns.Length - 1) + ColumnWidth, Config.bottomCover - 1f, Color.Black);
+            Shapes.Line(GetColumnStart(0), -0.999f, -GetColumnStart(0), -0.999f, Color.White);
         }
 
         public static void OnKey(KeyboardKeyEventArgs e, bool down, double time) {

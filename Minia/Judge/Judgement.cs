@@ -15,8 +15,8 @@ namespace Minia.Judge {
             JudgeMeter.Judge(offset);
         }
 
-        public static void Draw(byte columns, double time) {
-            JudgeHighlighting.Draw(columns, time);
+        public static void Draw(double time) {
+            JudgeHighlighting.Draw(time);
             JudgeMeter.Draw();
         }
     }

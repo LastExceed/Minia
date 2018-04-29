@@ -3,10 +3,11 @@ using NAudio.Wave.SampleProviders;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Minia {
     static class Audio {
-        static AsioOut asioOut;
+        public static AsioOut asioOut;
         static MixingWaveProvider32 mixer;
         public static WaveChannel32 music, miss, hit;
         private static Stopwatch sw = new Stopwatch();
@@ -78,12 +79,16 @@ namespace Minia {
                 Volume = 0.2f
             };
             mixer.AddInputStream(music);
-            music.CurrentTime = new TimeSpan(0, 0, 30);
+            sw.Restart();
+            //music.CurrentTime = new TimeSpan(0, 0, 30);
         }
 
         public static void ResetAndSync() {
-            music.CurrentTime = new TimeSpan(0);
+            mixer.RemoveInputStream(music);
+            music.Position = 0;
+            mixer.AddInputStream(music);
             sw.Restart();
+            //music.CurrentTime = new TimeSpan(0);
             total = 0;
             steps = 0;
         }

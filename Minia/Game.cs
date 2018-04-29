@@ -1,4 +1,5 @@
-﻿using OpenTK;
+﻿using Minia.Judge;
+using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
@@ -38,9 +39,13 @@ namespace Minia {
             switch (Config.screen) {
                 case Screen.Stage:
                     Stage.Draw(Audio.MusicTime);
+                    Judgement.Draw(Audio.MusicTime);
                     break;
                 case Screen.SongSelection:
-                        SongSelection.Draw();
+                    if (Stage.beatmap != null) {
+                        Stage.Draw(Audio.MusicTime);
+                    }
+                    SongSelection.Draw();
                     break;
             }
             var yy = sw.ElapsedTicks;

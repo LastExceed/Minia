@@ -83,6 +83,7 @@ namespace Minia {
         private static void SelectDiff(int index) {
             selectedDiff = index;
             var audioFile = selectedDiff == -1 ? null : searchResults[selectedMapset] + @"\" + diffs[index].properties["audiofilename"];
+            Stage.Load(diffs[index]);
             if (audioFile != currentAudioFile) {//audioFile changed
                 currentAudioFile = audioFile;
                 if (audioFile == null) return;
@@ -138,6 +139,9 @@ namespace Minia {
                     break;
                 case Key.Enter:
                     if (Audio.musicCompatible) {
+                        Audio.ResetAndSync();
+
+                        Config.screen = Screen.Stage;
                         Stage.Load(diffs[selectedDiff]);
                     }
                     else {

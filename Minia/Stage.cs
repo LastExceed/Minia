@@ -7,7 +7,7 @@ using Minia.Judge;
 namespace Minia {
     static class Stage {
         static ColumnData[] columns;
-        static Beatmap beatmap;
+        public static Beatmap beatmap;
         static List<Key> keyLayout;
 
         public static float GetColumnStart(int column) {
@@ -18,8 +18,6 @@ namespace Minia {
         }
 
         public static void Load(Beatmap beatmap) {
-            Stage.beatmap = beatmap;
-
             columns = new ColumnData[beatmap.columns];
             for (int i = 0; i < beatmap.columns; i++) {
                 columns[i] = new ColumnData {
@@ -63,13 +61,12 @@ namespace Minia {
                 default:
                     break;
             }
-            Audio.ResetAndSync();
-            Config.screen = Screen.Stage;
+            //Audio.ResetAndSync();
+            Stage.beatmap = beatmap;
         }
 
         public static void Draw(double time) {
             Shapes.Line(GetColumnStart(0), -0.999f, -GetColumnStart(0), -0.999f, Color.White);
-            Judgement.Draw(beatmap.columns, time);
             for (byte column = 0; column < beatmap.columns; column++) {
                 var columnData = columns[column];
                 for (int i = columnData.startPos; i < columnData.notes.Count; i++) {
@@ -77,7 +74,9 @@ namespace Minia {
                     if (ho.start > time + Config.scrollTime) break;
                     else if (ho.start < time - Config.hitWindow) {
                         columnData.startPos++;
-                        Judgement.Judge(Config.hitWindow, time, column);
+                        if (Config.screen == Screen.Stage) {
+                            Judgement.Judge(Config.hitWindow, time, column);
+                        }
                     }
                     else {
                         float noteX = GetColumnStart(column) + ColumnWidth / 2f;

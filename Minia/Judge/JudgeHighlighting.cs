@@ -28,8 +28,8 @@ namespace Minia.Judge {
 
             Score.Include(offset);
         }
-        public static void Draw(byte columns, double time) {
-            for (int column = 0; column < columns; column++) {
+        public static void Draw(double time) {
+            for (int column = 0; column < judgeTime.Length; column++) {
                 if (judgeTime[column] > time) {
                     Shapes.Rectangle(
                         Stage.GetColumnStart(column),
